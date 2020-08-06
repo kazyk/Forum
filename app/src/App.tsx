@@ -13,6 +13,14 @@ function Home() {
   )
 }
 
+function Communities() {
+  return <Text>Communities</Text>
+}
+
+function Search() {
+  return <Text>Search</Text>
+}
+
 function Settings() {
   return <Text>Settings</Text>
 }
@@ -24,6 +32,8 @@ export function App() {
     <NavigationContainer>
       <Tab.Navigator>
         <Tab.Screen name="Home" component={Home} />
+        <Tab.Screen name="Communities" component={Communities} />
+        <Tab.Screen name="Search" component={Search} />
         <Tab.Screen name="Settings" component={Settings} />
       </Tab.Navigator>
     </NavigationContainer>
