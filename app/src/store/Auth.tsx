@@ -1,10 +1,21 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { createSlice, PayloadAction, Action } from "@reduxjs/toolkit"
 import * as firebase from "firebase"
-import { AppThunk } from "../util/redux"
+import { Observable } from "rxjs/Rx"
+import { filter, switchMap, map, take, catchError } from "rxjs/operators"
+import { combineEpics } from "redux-observable"
+import { from } from "rxjs/observable/from"
+import { of } from "rxjs/observable/of"
 
 type AuthUser = {
   uid: string
   isAnonymous: boolean
+}
+
+function authUser(user: firebase.User): AuthUser {
+  return {
+    uid: user.uid,
+    isAnonymous: user.isAnonymous,
+  }
 }
 
 type ErrorInfo = {
@@ -35,21 +46,12 @@ const slice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    initialize: {
-      reducer: (state, action: PayloadAction<AuthUser | null>) => {
-        state.currentUser = action.payload
-        state.initialized = true
-      },
-      prepare() {
-        const user = firebase.auth().currentUser
-        return {
-          payload: user
-            ? { uid: user.uid, isAnonymous: user.isAnonymous }
-            : null,
-        }
-      },
+    initialize: () => {},
+    initializeCompleted: (state, action: PayloadAction<AuthUser | null>) => {
+      state.currentUser = action.payload
+      state.initialized = true
     },
-    signInAnonymousStart: (state, action: PayloadAction<void>) => {
+    signInAnonymous: (state) => {
       state.ui.signIn.isPending = true
     },
     signInAnonymousSuccess: (state, action: PayloadAction<AuthUser>) => {
@@ -63,38 +65,49 @@ const slice = createSlice({
   },
 })
 
+const actions = slice.actions
+
+const initializeEpic = (action$: Observable<Action>) =>
+  action$.pipe(
+    filter(actions.initialize.match),
+    switchMap(() => {
+      const user$ = new Observable<firebase.User | null>((subscriber) => {
+        return firebase.auth().onAuthStateChanged(subscriber)
+      })
+      return user$.pipe(
+        map((val) => actions.initializeCompleted(val ? authUser(val) : null)),
+        take(1)
+      )
+    })
+  )
+
+const signInAnonymousEpic = (action$: Observable<Action>) =>
+  action$.pipe(
+    filter(actions.signInAnonymous.match),
+    switchMap(() => {
+      return from(firebase.auth().signInAnonymously()).pipe(
+        map((cred) => {
+          if (cred.user) {
+            return actions.signInAnonymousSuccess(authUser(cred.user))
+          } else {
+            return actions.signInAnonymousFailed({
+              message: "unexpected",
+              error: new Error("unexpected"),
+            })
+          }
+        }),
+        catchError((err) => {
+          return of(
+            actions.signInAnonymousFailed({
+              message: err.message,
+              error: err,
+            })
+          )
+        })
+      )
+    })
+  )
+
+export const authEpic = combineEpics(initializeEpic, signInAnonymousEpic)
 export const authReducer = slice.reducer
-
-const { initialize } = slice.actions
-export const authActions = {
-  initialize,
-  signInAnonymous: (): AppThunk => async (dispatch) => {
-    dispatch(slice.actions.signInAnonymousStart())
-    try {
-      const { user } = await firebase.auth().signInAnonymously()
-      if (!user) {
-        dispatch(
-          slice.actions.signInAnonymousFailed({
-            message: "unexpected error",
-            error: new Error("unexpected"),
-          })
-        )
-        return
-      }
-
-      dispatch(
-        slice.actions.signInAnonymousSuccess({
-          uid: user.uid,
-          isAnonymous: user.isAnonymous,
-        })
-      )
-    } catch (err) {
-      dispatch(
-        slice.actions.signInAnonymousFailed({
-          message: err.message,
-          error: err,
-        })
-      )
-    }
-  },
-}
+export const authActions = slice.actions
