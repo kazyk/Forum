@@ -34,7 +34,7 @@ function Settings() {
 const Tab = createBottomTabNavigator()
 
 function Root() {
-  const isLoggedIn = useSelector((state) => state.auth.currentUid != null)
+  const isLoggedIn = useSelector((state) => state.auth.currentUser != null)
 
   return isLoggedIn ? (
     <Tab.Navigator>

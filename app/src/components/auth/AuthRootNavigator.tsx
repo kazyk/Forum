@@ -1,12 +1,12 @@
 import React, { useEffect } from "react"
 import { createStackNavigator } from "@react-navigation/stack"
 import { useDispatch } from "react-redux"
-import { auth } from "../../store/Auth"
 import { useSelector } from "../../util/redux"
 import { LoginScreen } from "./LoginScreen"
 import { SignUpScreen } from "./SignUpScreen"
 import { Center } from "../common/Center"
 import { ActivityIndicator } from "react-native"
+import { authActions } from "../../store/Auth"
 
 const Stack = createStackNavigator()
 
@@ -15,7 +15,7 @@ export function AuthRootNavigator() {
 
   const dispatch = useDispatch()
   useEffect(() => {
-    dispatch(auth.initialize())
+    dispatch(authActions.initialize())
   }, [])
 
   return (
