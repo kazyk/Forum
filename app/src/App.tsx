@@ -1,15 +1,16 @@
 import { createBottomTabNavigator } from "@react-navigation/bottom-tabs"
 import { NavigationContainer } from "@react-navigation/native"
-import { createStackNavigator } from "@react-navigation/stack"
 import React from "react"
 import { StyleSheet, Text } from "react-native"
+import { createNativeStackNavigator } from "react-native-screens/native-stack"
 import { Provider } from "react-redux"
+import { AuthRootNavigator } from "./components/auth/AuthRootNavigator"
 import { HomeScreen } from "./components/home/HomeScreen"
 import { store } from "./store/Store"
 import { useSelector } from "./util/redux"
-import { AuthRootNavigator } from "./components/auth/AuthRootNavigator"
+import { NewThreadScreen } from "./components/thread/new/NewThreadScreen"
 
-const HomeStack = createStackNavigator()
+const HomeStack = createNativeStackNavigator()
 
 function HomeStackScreen() {
   return (
@@ -31,18 +32,32 @@ function Settings() {
   return <Text>Settings</Text>
 }
 
+const RootStack = createNativeStackNavigator()
+
 const Tab = createBottomTabNavigator()
-
-function Root() {
-  const isLoggedIn = useSelector((state) => state.auth.currentUser != null)
-
-  return isLoggedIn ? (
+function TabScreen() {
+  return (
     <Tab.Navigator>
       <Tab.Screen name="Home" component={HomeStackScreen} />
       <Tab.Screen name="Communities" component={Communities} />
       <Tab.Screen name="Search" component={Search} />
       <Tab.Screen name="Settings" component={Settings} />
     </Tab.Navigator>
+  )
+}
+
+function Root() {
+  const isLoggedIn = useSelector((state) => state.auth.currentUser != null)
+
+  return isLoggedIn ? (
+    <RootStack.Navigator screenOptions={{ stackPresentation: "modal" }}>
+      <RootStack.Screen
+        name="Tab"
+        component={TabScreen}
+        options={{ headerShown: false }}
+      />
+      <RootStack.Screen name="NewThread" component={NewThreadScreen} />
+    </RootStack.Navigator>
   ) : (
     <AuthRootNavigator />
   )

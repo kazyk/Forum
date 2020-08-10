@@ -1,12 +1,12 @@
-import React, { useEffect } from "react"
 import { createStackNavigator } from "@react-navigation/stack"
+import React, { useEffect } from "react"
+import { ActivityIndicator } from "react-native"
 import { useDispatch } from "react-redux"
+import { authActions } from "../../store/Auth"
 import { useSelector } from "../../util/redux"
+import { Center } from "../common/Center"
 import { LoginScreen } from "./LoginScreen"
 import { SignUpScreen } from "./SignUpScreen"
-import { Center } from "../common/Center"
-import { ActivityIndicator } from "react-native"
-import { authActions } from "../../store/Auth"
 
 const Stack = createStackNavigator()
 
