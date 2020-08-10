@@ -1,7 +1,7 @@
-import React from "react"
-import { View, Text, StyleSheet } from "react-native"
-import { FAB } from "../common/FAB"
 import { StackNavigationProp } from "@react-navigation/stack"
+import React from "react"
+import { StyleSheet, Text, View } from "react-native"
+import { FAB } from "../common/FAB"
 import { NewThreadScreenParam } from "../thread/new/NewThreadScreen"
 
 type Props = {

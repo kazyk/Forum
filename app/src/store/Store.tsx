@@ -2,8 +2,9 @@ import { configureStore, getDefaultMiddleware } from "@reduxjs/toolkit"
 import logger from "redux-logger"
 import { createEpicMiddleware, combineEpics, Epic } from "redux-observable"
 import { authReducer, authEpic } from "./Auth"
+import { threadEpic, threadReducer } from "./Thread"
 
-const rootEpic: Epic = combineEpics(authEpic)
+const rootEpic: Epic = combineEpics(authEpic, threadEpic)
 const epicMiddleware = createEpicMiddleware()
 
 const middleware = (() => {
@@ -18,6 +19,7 @@ const middleware = (() => {
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    thread: threadReducer,
   },
   middleware,
 })

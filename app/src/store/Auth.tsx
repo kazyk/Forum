@@ -5,6 +5,7 @@ import { filter, switchMap, map, take, catchError } from "rxjs/operators"
 import { combineEpics } from "redux-observable"
 import { from } from "rxjs/observable/from"
 import { of } from "rxjs/observable/of"
+import { ErrorInfo } from "./Types"
 
 type AuthUser = {
   uid: string
@@ -16,11 +17,6 @@ function authUser(user: firebase.User): AuthUser {
     uid: user.uid,
     isAnonymous: user.isAnonymous,
   }
-}
-
-type ErrorInfo = {
-  message: string
-  error: Error
 }
 
 export type AuthState = {
