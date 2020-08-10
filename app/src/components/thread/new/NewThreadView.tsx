@@ -1,15 +1,18 @@
 import React from "react"
-import { View, StyleSheet } from "react-native"
+import { StyleSheet, View } from "react-native"
 import { TextInput } from "react-native-paper"
+import { ErrorInfo } from "../../../store/Types"
+import { ErrorSnack } from "../../common/ErrorSnack"
 
 type Props = {
   onChangeTitle: (text: string) => void
   onChangeBody: (text: string) => void
+  error?: ErrorInfo
 }
 
 export function NewThreadView(props: Props) {
   return (
-    <View>
+    <View style={StyleSheet.absoluteFill}>
       <TextInput label="Title" onChangeText={props.onChangeTitle} />
       <TextInput
         label="Body"
@@ -17,6 +20,7 @@ export function NewThreadView(props: Props) {
         onChangeText={props.onChangeBody}
         style={styles.body}
       />
+      <ErrorSnack error={props.error} />
     </View>
   )
 }

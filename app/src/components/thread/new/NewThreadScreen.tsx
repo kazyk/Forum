@@ -2,7 +2,11 @@ import React, { useCallback, useEffect, useState } from "react"
 import { Button } from "react-native-paper"
 import { NativeStackNavigationProp } from "react-native-screens/lib/typescript"
 import { useDispatch } from "react-redux"
-import { selectPostNewThreadSucceeded, threadActions } from "../../../store/Thread"
+import {
+  selectPostNewThreadSucceeded,
+  threadActions,
+  selectPostNewThreadError,
+} from "../../../store/Thread"
 import { useSelector } from "../../../util/redux"
 import { NewThreadView } from "./NewThreadView"
 
@@ -19,8 +23,9 @@ export function NewThreadScreen({ navigation }: Props) {
   const [body, setBody] = useState("")
   const canPost = title && body
   const succeeded = useSelector(selectPostNewThreadSucceeded)
-
+  const error = useSelector(selectPostNewThreadError)
   const dispatch = useDispatch()
+
   const post = useCallback(() => {
     dispatch(
       threadActions.postNewThread({
@@ -52,5 +57,11 @@ export function NewThreadScreen({ navigation }: Props) {
     }
   }, [])
 
-  return <NewThreadView onChangeTitle={setTitle} onChangeBody={setBody} />
+  return (
+    <NewThreadView
+      onChangeTitle={setTitle}
+      onChangeBody={setBody}
+      error={error}
+    />
+  )
 }

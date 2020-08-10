@@ -5,8 +5,11 @@ import "firebase/auth"
 import "firebase/firestore"
 import firebaseConfig from "./firebaseConfig"
 import { App } from "./src/App"
+import { YellowBox } from "react-native"
 
 enableScreens()
+
+YellowBox.ignoreWarnings(["Setting a timer"])
 
 // Initialize Firebase
 firebase.initializeApp(firebaseConfig)

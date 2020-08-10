@@ -1,10 +1,17 @@
-import { Action, createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { createSlice, PayloadAction } from "@reduxjs/toolkit"
 import * as firebase from "firebase"
 import { combineEpics } from "redux-observable"
-import { from, Observable, of } from "rxjs"
-import { catchError, filter, map, switchMap } from "rxjs/operators"
-import { RootState } from "./Store"
-import { ErrorInfo } from "./Types"
+import { from, of } from "rxjs"
+import {
+  catchError,
+  filter,
+  map,
+  switchMap,
+  withLatestFrom,
+} from "rxjs/operators"
+import { AppEpic, RootState } from "./Store"
+import { ErrorInfo, Thread } from "./Types"
+import { selectCurrentUid } from "./Auth"
 
 type NewThreadParam = {
   title: string
@@ -16,7 +23,7 @@ export type ThreadState = {
     newThread: {
       isPending?: boolean
       success?: boolean
-      error?: ErrorInfo | null
+      error?: ErrorInfo
     }
   }
 }
@@ -50,20 +57,26 @@ const slice = createSlice({
 
 const actions = slice.actions
 
-const postNewThreadEpic = (action$: Observable<Action>) =>
+const postNewThreadEpic: AppEpic = (action$, state$) =>
   action$.pipe(
     filter(actions.postNewThread.match),
-    switchMap((action) => {
-      const collection = firebase.firestore().collection("threads")
-      return from(collection.add(action.payload)).pipe(
-        map((docRef) => {
+    withLatestFrom(state$),
+    switchMap(([action, state]) => {
+      const data: Thread = {
+        title: action.payload.title,
+        body: action.payload.body,
+        authorUid: selectCurrentUid(state),
+      }
+      const threadsRef = firebase.firestore().collection("threads")
+      return from(threadsRef.add(data)).pipe(
+        map(() => {
           return actions.postNewThreadSuccess()
         }),
         catchError((err) => {
           return of(
             actions.postNewThreadFailed({
               message: err.message,
-              error: err,
+              detail: err.toString(),
             })
           )
         })
@@ -72,10 +85,13 @@ const postNewThreadEpic = (action$: Observable<Action>) =>
   )
 
 export const threadEpic = combineEpics(postNewThreadEpic)
-
 export const threadReducer = slice.reducer
 export const threadActions = slice.actions
 
 export function selectPostNewThreadSucceeded(state: RootState) {
   return !!state.thread.ui.newThread.success
+}
+
+export function selectPostNewThreadError(state: RootState) {
+  return state.thread.ui.newThread.error
 }

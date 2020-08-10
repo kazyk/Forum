@@ -2,7 +2,7 @@ import React from "react"
 import { Button } from "react-native"
 import { useDispatch } from "react-redux"
 import { authActions } from "../../store/Auth"
-import { selectIsPendingSignIn } from "../../store/AuthSelectors"
+import { selectIsPendingSignIn } from "../../store/Auth"
 import { useSelector } from "../../util/redux"
 import { Center } from "../common/Center"
 

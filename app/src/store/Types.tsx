@@ -1,4 +1,10 @@
 export type ErrorInfo = {
   message: string
-  error: Error
+  detail?: string
+}
+
+export interface Thread {
+  title: string
+  body: string
+  authorUid: string | null
 }

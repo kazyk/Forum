@@ -1,8 +1,9 @@
 import { StackNavigationProp } from "@react-navigation/stack"
 import React from "react"
-import { StyleSheet, Text, View } from "react-native"
+import { StyleSheet, View } from "react-native"
 import { FAB } from "../common/FAB"
 import { NewThreadScreenParam } from "../thread/new/NewThreadScreen"
+import { HomeView } from "./HomeView"
 
 type Props = {
   navigation: StackNavigationProp<NewThreadScreenParam>
@@ -14,7 +15,7 @@ export function HomeScreen({ navigation }: Props) {
   }
   return (
     <View style={StyleSheet.absoluteFill}>
-      <Text>Home</Text>
+      <HomeView />
       <FAB icon="plus" onPress={showNewThread} />
     </View>
   )

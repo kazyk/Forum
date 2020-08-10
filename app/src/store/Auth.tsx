@@ -6,6 +6,7 @@ import { combineEpics } from "redux-observable"
 import { from } from "rxjs/observable/from"
 import { of } from "rxjs/observable/of"
 import { ErrorInfo } from "./Types"
+import { RootState } from "./Store"
 
 type AuthUser = {
   uid: string
@@ -88,7 +89,6 @@ const signInAnonymousEpic = (action$: Observable<Action>) =>
           } else {
             return actions.signInAnonymousFailed({
               message: "unexpected",
-              error: new Error("unexpected"),
             })
           }
         }),
@@ -96,7 +96,7 @@ const signInAnonymousEpic = (action$: Observable<Action>) =>
           return of(
             actions.signInAnonymousFailed({
               message: err.message,
-              error: err,
+              detail: err.toString(),
             })
           )
         })
@@ -107,3 +107,11 @@ const signInAnonymousEpic = (action$: Observable<Action>) =>
 export const authEpic = combineEpics(initializeEpic, signInAnonymousEpic)
 export const authReducer = slice.reducer
 export const authActions = slice.actions
+
+export function selectIsPendingSignIn(state: RootState): boolean {
+  return !!state.auth.ui.signIn.isPending
+}
+
+export function selectCurrentUid(state: RootState): string | null {
+  return state.auth.currentUser?.uid ?? null
+}
