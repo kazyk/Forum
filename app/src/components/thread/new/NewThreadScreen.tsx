@@ -53,7 +53,7 @@ export function NewThreadScreen({ navigation }: Props) {
 
   useEffect(() => {
     return () => {
-      dispatch(threadActions.newThreadClosed())
+      dispatch(threadActions.postNewThreadClear())
     }
   }, [])
 

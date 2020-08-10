@@ -49,7 +49,7 @@ const slice = createSlice({
       state.ui.newThread.isPending = false
       state.ui.newThread.error = action.payload
     },
-    newThreadClosed: (state) => {
+    postNewThreadClear: (state) => {
       state.ui.newThread = {}
     },
   },
