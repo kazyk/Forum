@@ -1,3 +1,5 @@
+import { firestore } from "firebase";
+
 export type ErrorInfo = {
   message: string
   detail?: string
@@ -6,5 +8,6 @@ export type ErrorInfo = {
 export interface Thread {
   title: string
   body: string
-  authorUid: string | null
+  authorUid: string
+  createdAt: firestore.Timestamp
 }

@@ -62,10 +62,11 @@ const postNewThreadEpic: AppEpic = (action$, state$) =>
     filter(actions.postNewThread.match),
     withLatestFrom(state$),
     switchMap(([action, state]) => {
-      const data: Thread = {
+      const data = {
         title: action.payload.title,
         body: action.payload.body,
         authorUid: selectCurrentUid(state),
+        createdAt: firebase.firestore.FieldValue.serverTimestamp()
       }
       const threadsRef = firebase.firestore().collection("threads")
       return from(threadsRef.add(data)).pipe(
