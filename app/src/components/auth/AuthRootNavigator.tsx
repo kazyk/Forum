@@ -3,10 +3,10 @@ import React, { useEffect } from "react"
 import { ActivityIndicator } from "react-native"
 import { useDispatch } from "react-redux"
 import { authActions } from "../../store/Auth"
-import { useSelector } from "../../util/redux"
 import { Center } from "../common/Center"
 import { LoginScreen } from "./LoginScreen"
 import { SignUpScreen } from "./SignUpScreen"
+import { useSelector } from "../../store/Store"
 
 const Stack = createStackNavigator()
 

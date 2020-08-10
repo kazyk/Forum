@@ -6,8 +6,7 @@ import { createNativeStackNavigator } from "react-native-screens/native-stack"
 import { Provider } from "react-redux"
 import { AuthRootNavigator } from "./components/auth/AuthRootNavigator"
 import { HomeScreen } from "./components/home/HomeScreen"
-import { store } from "./store/Store"
-import { useSelector } from "./util/redux"
+import { store, useSelector } from "./store/Store"
 import { NewThreadScreen } from "./components/thread/new/NewThreadScreen"
 
 const HomeStack = createNativeStackNavigator()

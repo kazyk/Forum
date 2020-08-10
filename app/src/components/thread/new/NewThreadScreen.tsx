@@ -7,8 +7,8 @@ import {
   threadActions,
   selectPostNewThreadError,
 } from "../../../store/Thread"
-import { useSelector } from "../../../util/redux"
 import { NewThreadView } from "./NewThreadView"
+import { useSelector } from "../../../store/Store"
 
 export type NewThreadScreenParam = {
   NewThread: undefined
