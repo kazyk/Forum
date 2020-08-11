@@ -1,9 +1,18 @@
 import React from "react"
-import { View } from "react-native"
+import { FlatList } from "react-native-gesture-handler"
 import { Thread } from "../../store/Types"
+import { ThreadCell } from "./ThreadCell"
 
-export function HomeView() {
-  return <View />
+type Props = {
+  threads: Thread[] | null
 }
 
-function ThreadCell(props: { thread: Thread }) {}
+export function HomeView(props: Props) {
+  const { threads } = props
+  return (
+    <FlatList
+      data={threads}
+      renderItem={({ item }) => <ThreadCell thread={item} />}
+    />
+  )
+}

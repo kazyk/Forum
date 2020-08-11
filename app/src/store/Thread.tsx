@@ -1,5 +1,6 @@
-import { createSlice, PayloadAction } from "@reduxjs/toolkit"
+import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit"
 import * as firebase from "firebase"
+import _ from "lodash"
 import { combineEpics } from "redux-observable"
 import { from, of } from "rxjs"
 import {
@@ -7,19 +8,30 @@ import {
   filter,
   map,
   switchMap,
-  withLatestFrom,
+  withLatestFrom
 } from "rxjs/operators"
-import { AppEpic, RootState } from "./Store"
-import { ErrorInfo, Thread } from "./Types"
 import { selectCurrentUid } from "./Auth"
+import { AppEpic, RootState } from "./Store"
+import { ErrorInfo, Thread, toThread } from "./Types"
 
 type NewThreadParam = {
   title: string
   body: string
 }
 
+type ThreadFetchResult = {
+  list: string[]
+  threads: Record<string, Thread>
+}
+
 export type ThreadState = {
+  byId: Record<string, Thread>
   ui: {
+    home: {
+      list?: string[]
+      isFetching?: boolean
+      isRefreshing?: boolean
+    }
     newThread: {
       isPending?: boolean
       success?: boolean
@@ -29,7 +41,9 @@ export type ThreadState = {
 }
 
 const initialState: ThreadState = {
+  byId: {},
   ui: {
+    home: {},
     newThread: {},
   },
 }
@@ -52,6 +66,17 @@ const slice = createSlice({
     postNewThreadClear: (state) => {
       state.ui.newThread = {}
     },
+    fetchHomeThreadList: (state) => {
+      state.ui.home.isFetching = true
+    },
+    fetchHomeThreadListSuccess: (
+      state,
+      action: PayloadAction<ThreadFetchResult>
+    ) => {
+      state.ui.home.isFetching = false
+      state.ui.home.list = action.payload.list
+      state.byId = action.payload.threads
+    },
   },
 })
 
@@ -66,7 +91,7 @@ const postNewThreadEpic: AppEpic = (action$, state$) =>
         title: action.payload.title,
         body: action.payload.body,
         authorUid: selectCurrentUid(state),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp()
+        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
       }
       const threadsRef = firebase.firestore().collection("threads")
       return from(threadsRef.add(data)).pipe(
@@ -85,7 +110,27 @@ const postNewThreadEpic: AppEpic = (action$, state$) =>
     })
   )
 
-export const threadEpic = combineEpics(postNewThreadEpic)
+const fetchHomeThreadListEpic: AppEpic = (action$, state$) =>
+  action$.pipe(
+    filter(actions.fetchHomeThreadList.match),
+    switchMap((action) => {
+      const threadsRef = firebase.firestore().collection("threads")
+      return from(threadsRef.orderBy("createdAt", "desc").limit(20).get()).pipe(
+        map((snapshot) => {
+          const threads = snapshot.docs.map(toThread)
+          return actions.fetchHomeThreadListSuccess({
+            list: threads.map((th) => th.key),
+            threads: _.keyBy(threads, (th) => th.key),
+          })
+        })
+      )
+    })
+  )
+
+export const threadEpic = combineEpics(
+  postNewThreadEpic,
+  fetchHomeThreadListEpic
+)
 export const threadReducer = slice.reducer
 export const threadActions = slice.actions
 
@@ -96,3 +141,11 @@ export function selectPostNewThreadSucceeded(state: RootState) {
 export function selectPostNewThreadError(state: RootState) {
   return state.thread.ui.newThread.error
 }
+
+export const selectHomeThreadList = createSelector(
+  (state: RootState) => state.thread.byId,
+  (state) => state.thread.ui.home.list,
+  (threads, list) => {
+    return list?.map((id) => threads[id]) ?? null
+  }
+)
