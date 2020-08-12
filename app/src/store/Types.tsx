@@ -34,3 +34,24 @@ export const threadConverter = {
     }
   },
 }
+
+export interface User {
+  uid: string
+  displayName: string
+}
+
+export const userConverter = {
+  toFirestore(u: User): firestore.DocumentData {
+    return {
+      uid: u.uid,
+      displayName: u.displayName,
+    }
+  },
+  fromFirestore(snapshot: firestore.QueryDocumentSnapshot): User {
+    const data = snapshot.data()
+    return {
+      uid: snapshot.id,
+      displayName: data.displayName,
+    }
+  },
+}

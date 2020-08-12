@@ -2,7 +2,7 @@ import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit"
 import * as firebase from "firebase"
 import _ from "lodash"
 import { combineEpics } from "redux-observable"
-import { from, of } from "rxjs"
+import { EMPTY, from, of } from "rxjs"
 import {
   catchError,
   filter,
@@ -52,32 +52,32 @@ const slice = createSlice({
   name: "thread",
   initialState,
   reducers: {
-    postNewThread: (state, action: PayloadAction<NewThreadParam>) => {
+    postNewThread(state, action: PayloadAction<NewThreadParam>) {
       state.ui.newThread.isPending = true
     },
-    postNewThreadSuccess: (state) => {
+    postNewThreadSuccess(state) {
       state.ui.newThread.isPending = false
       state.ui.newThread.success = true
     },
-    postNewThreadFailed: (state, action: PayloadAction<ErrorInfo>) => {
+    postNewThreadFailed(state, action: PayloadAction<ErrorInfo>) {
       state.ui.newThread.isPending = false
       state.ui.newThread.error = action.payload
     },
-    postNewThreadClear: (state) => {
+    postNewThreadClear(state) {
       state.ui.newThread = {}
     },
-    fetchHomeThreadList: (state) => {
+    fetchHomeThreadList(state) {
       state.ui.home.isFetching = true
     },
-    fetchHomeThreadListSuccess: (
+    fetchHomeThreadListSuccess(
       state,
       action: PayloadAction<ThreadFetchResult>
-    ) => {
+    ) {
       state.ui.home.isFetching = false
       state.ui.home.list = action.payload.list
       state.byId = action.payload.threads
     },
-    fetchHomeThreadListFailed: (state, action: PayloadAction<ErrorInfo>) => {},
+    fetchHomeThreadListFailed(state, action: PayloadAction<ErrorInfo>) {},
   },
 })
 
@@ -88,6 +88,9 @@ const postNewThreadEpic: AppEpic = (action$, state$) =>
     filter(actions.postNewThread.match),
     withLatestFrom(state$),
     switchMap(([action, state]) => {
+      if (state.thread.ui.newThread.isPending) {
+        return EMPTY
+      }
       const data = {
         title: action.payload.title,
         body: action.payload.body,
@@ -114,7 +117,12 @@ const postNewThreadEpic: AppEpic = (action$, state$) =>
 const fetchHomeThreadListEpic: AppEpic = (action$, state$) =>
   action$.pipe(
     filter(actions.fetchHomeThreadList.match),
-    switchMap((action) => {
+    withLatestFrom(state$),
+    switchMap(([action, state]) => {
+      if (state.thread.ui.home.isFetching) {
+        return EMPTY
+      }
+
       const threadsRef = firebase
         .firestore()
         .collection("threads")

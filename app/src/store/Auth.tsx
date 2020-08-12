@@ -10,12 +10,14 @@ import { RootState } from "./Store"
 
 type AuthUser = {
   uid: string
+  displayName: string | null
   isAnonymous: boolean
 }
 
 function authUser(user: firebase.User): AuthUser {
   return {
     uid: user.uid,
+    displayName: user.displayName,
     isAnonymous: user.isAnonymous,
   }
 }
@@ -43,19 +45,19 @@ const slice = createSlice({
   name: "auth",
   initialState,
   reducers: {
-    initialize: () => {},
-    initializeCompleted: (state, action: PayloadAction<AuthUser | null>) => {
+    initialize() {},
+    initializeCompleted(state, action: PayloadAction<AuthUser | null>) {
       state.currentUser = action.payload
       state.initialized = true
     },
-    signInAnonymous: (state) => {
+    signInAnonymous(state) {
       state.ui.signIn.isPending = true
     },
-    signInAnonymousSuccess: (state, action: PayloadAction<AuthUser>) => {
+    signInAnonymousSuccess(state, action: PayloadAction<AuthUser>) {
       state.currentUser = action.payload
       state.ui.signIn.isPending = false
     },
-    signInAnonymousFailed: (state, action: PayloadAction<ErrorInfo>) => {
+    signInAnonymousFailed(state, action: PayloadAction<ErrorInfo>) {
       state.ui.signIn.isPending = false
       state.ui.signIn.error = action.payload
     },

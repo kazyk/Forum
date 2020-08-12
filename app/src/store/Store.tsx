@@ -1,19 +1,20 @@
 import {
+  Action,
   configureStore,
   getDefaultMiddleware,
   ThunkAction,
-  Action,
 } from "@reduxjs/toolkit"
-import logger from "redux-logger"
-import { createEpicMiddleware, combineEpics, Epic } from "redux-observable"
-import { authReducer, authEpic } from "./Auth"
-import { threadEpic, threadReducer } from "./Thread"
 import {
-  useSelector as useReduxSelector,
   TypedUseSelectorHook,
+  useSelector as useReduxSelector,
 } from "react-redux"
+import logger from "redux-logger"
+import { combineEpics, createEpicMiddleware, Epic } from "redux-observable"
+import { authEpic, authReducer } from "./Auth"
+import { threadEpic, threadReducer } from "./Thread"
+import { userEpic, userReducer } from "./User"
 
-const rootEpic: Epic = combineEpics(authEpic, threadEpic)
+const rootEpic: Epic = combineEpics(authEpic, userEpic, threadEpic)
 const epicMiddleware = createEpicMiddleware()
 
 const middleware = (() => {
@@ -28,6 +29,7 @@ const middleware = (() => {
 export const store = configureStore({
   reducer: {
     auth: authReducer,
+    user: userReducer,
     thread: threadReducer,
   },
   middleware,
