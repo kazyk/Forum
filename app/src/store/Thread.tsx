@@ -8,11 +8,11 @@ import {
   filter,
   map,
   switchMap,
-  withLatestFrom
+  withLatestFrom,
 } from "rxjs/operators"
 import { selectCurrentUid } from "./Auth"
 import { AppEpic, RootState } from "./Store"
-import { ErrorInfo, Thread, toThread } from "./Types"
+import { ErrorInfo, Thread, threadConverter } from "./Types"
 
 type NewThreadParam = {
   title: string
@@ -77,6 +77,7 @@ const slice = createSlice({
       state.ui.home.list = action.payload.list
       state.byId = action.payload.threads
     },
+    fetchHomeThreadListFailed: (state, action: PayloadAction<ErrorInfo>) => {},
   },
 })
 
@@ -114,14 +115,26 @@ const fetchHomeThreadListEpic: AppEpic = (action$, state$) =>
   action$.pipe(
     filter(actions.fetchHomeThreadList.match),
     switchMap((action) => {
-      const threadsRef = firebase.firestore().collection("threads")
-      return from(threadsRef.orderBy("createdAt", "desc").limit(20).get()).pipe(
+      const threadsRef = firebase
+        .firestore()
+        .collection("threads")
+        .withConverter(threadConverter)
+      const query = threadsRef.orderBy("createdAt", "desc").limit(20)
+      return from(query.get()).pipe(
         map((snapshot) => {
-          const threads = snapshot.docs.map(toThread)
+          const threads = snapshot.docs.map((doc) => doc.data())
           return actions.fetchHomeThreadListSuccess({
             list: threads.map((th) => th.key),
             threads: _.keyBy(threads, (th) => th.key),
           })
+        }),
+        catchError((err) => {
+          return of(
+            actions.fetchHomeThreadListFailed({
+              message: err.message,
+              detail: err.toString(),
+            })
+          )
         })
       )
     })
