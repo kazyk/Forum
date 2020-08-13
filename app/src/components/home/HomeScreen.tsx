@@ -7,26 +7,24 @@ import { selectHomeThreadList, threadActions } from "../../store/Thread"
 import { FAB } from "../common/FAB"
 import { NewThreadScreenParam } from "../thread/new/NewThreadScreen"
 import { HomeView } from "./HomeView"
-import { selectMe } from "../../store/User"
+import { selectMe, userActions } from "../../store/User"
+import { RegistrationScreenParam } from "../register/RegistrationScreen"
 
+type ParamList = NewThreadScreenParam & RegistrationScreenParam
 type Props = {
-  navigation: StackNavigationProp<NewThreadScreenParam>
+  navigation: StackNavigationProp<ParamList>
 }
 
 export function HomeScreen({ navigation }: Props) {
   const threads = useSelector(selectHomeThreadList)
-  const me = useSelector(selectMe)
 
   const dispatch = useDispatch()
   useEffect(() => {
+    dispatch(userActions.fetchMe())
     dispatch(threadActions.fetchHomeThreadList())
   }, [])
 
   const showNewThread = () => {
-    if (!me) {
-      // TODO register user
-      return
-    }
     navigation.navigate("NewThread")
   }
 

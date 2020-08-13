@@ -9,16 +9,29 @@ import {
 } from "../../../store/Thread"
 import { NewThreadView } from "./NewThreadView"
 import { useSelector } from "../../../store/Store"
+import { useMe } from "../../../store/UserHooks"
+import { RegistrationScreenParam } from "../../register/RegistrationScreen"
 
 export type NewThreadScreenParam = {
   NewThread: undefined
 }
 
+type ParamList = RegistrationScreenParam
+
 type Props = {
-  navigation: NativeStackNavigationProp<{}>
+  navigation: NativeStackNavigationProp<ParamList>
 }
 
 export function NewThreadScreen({ navigation }: Props) {
+  const me = useMe({
+    navigateToRegistration: () => {
+      navigation.goBack()
+      navigation.navigate("Registration", {
+        screenAfterRegistration: "NewThread",
+      })
+    },
+  })
+
   const [title, setTitle] = useState("")
   const [body, setBody] = useState("")
   const canPost = title && body

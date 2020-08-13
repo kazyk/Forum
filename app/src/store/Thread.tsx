@@ -67,7 +67,7 @@ const slice = createSlice({
       state.ui.newThread = {}
     },
     fetchHomeThreadList(state) {
-      state.ui.home.isFetching = true
+      // state.ui.home.isFetching = true
     },
     fetchHomeThreadListSuccess(
       state,

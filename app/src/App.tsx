@@ -8,6 +8,8 @@ import { AuthRootNavigator } from "./components/auth/AuthRootNavigator"
 import { HomeScreen } from "./components/home/HomeScreen"
 import { store, useSelector } from "./store/Store"
 import { NewThreadScreen } from "./components/thread/new/NewThreadScreen"
+import { RegistrationScreen } from "./components/register/RegistrationScreen"
+import { SettingScreen } from "./components/setting/SettingScreen"
 
 const HomeStack = createNativeStackNavigator()
 
@@ -27,10 +29,6 @@ function Search() {
   return <Text>Search</Text>
 }
 
-function Settings() {
-  return <Text>Settings</Text>
-}
-
 const RootStack = createNativeStackNavigator()
 
 const Tab = createBottomTabNavigator()
@@ -40,7 +38,7 @@ function TabScreen() {
       <Tab.Screen name="Home" component={HomeStackScreen} />
       <Tab.Screen name="Communities" component={Communities} />
       <Tab.Screen name="Search" component={Search} />
-      <Tab.Screen name="Settings" component={Settings} />
+      <Tab.Screen name="Setting" component={SettingScreen} />
     </Tab.Navigator>
   )
 }
@@ -56,6 +54,7 @@ function Root() {
         options={{ headerShown: false }}
       />
       <RootStack.Screen name="NewThread" component={NewThreadScreen} />
+      <RootStack.Screen name="Registration" component={RegistrationScreen} />
     </RootStack.Navigator>
   ) : (
     <AuthRootNavigator />

@@ -6,6 +6,13 @@ export type ErrorInfo = {
   detail?: string
 }
 
+export function toErrorInfo(err: Error): ErrorInfo {
+  return {
+    message: err.message,
+    detail: err.toString(),
+  }
+}
+
 export interface Thread {
   key: string
   title: string
@@ -27,10 +34,10 @@ export const threadConverter = {
     const data = snapshot.data()
     return {
       key: snapshot.id,
-      title: data?.title,
-      body: data?.body,
-      authorUid: data?.author,
-      createdAt: formatISO(data?.createdAt.toDate()),
+      title: data.title,
+      body: data.body,
+      authorUid: data.author,
+      createdAt: formatISO(data.createdAt.toDate()),
     }
   },
 }
@@ -38,13 +45,14 @@ export const threadConverter = {
 export interface User {
   uid: string
   displayName: string
+  createdAt?: string
 }
 
 export const userConverter = {
   toFirestore(u: User): firestore.DocumentData {
     return {
-      uid: u.uid,
       displayName: u.displayName,
+      createdAt: u.createdAt ?? firestore.FieldValue.serverTimestamp(),
     }
   },
   fromFirestore(snapshot: firestore.QueryDocumentSnapshot): User {
@@ -52,6 +60,7 @@ export const userConverter = {
     return {
       uid: snapshot.id,
       displayName: data.displayName,
+      createdAt: formatISO(data.createdAt.toDate()),
     }
   },
 }
