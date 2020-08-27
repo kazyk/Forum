@@ -36,7 +36,7 @@ export const threadConverter = {
       key: snapshot.id,
       title: data.title,
       body: data.body,
-      authorUid: data.author,
+      authorUid: data.authorUid,
       createdAt: formatISO(data.createdAt.toDate()),
     }
   },

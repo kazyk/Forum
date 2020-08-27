@@ -1,5 +1,5 @@
 import { createSelector, createSlice, PayloadAction } from "@reduxjs/toolkit"
-import * as firebase from "firebase"
+import { firestore } from "firebase"
 import _ from "lodash"
 import { combineEpics } from "redux-observable"
 import { EMPTY, from, of } from "rxjs"
@@ -9,10 +9,17 @@ import {
   map,
   switchMap,
   withLatestFrom,
+  startWith,
 } from "rxjs/operators"
 import { selectCurrentUid } from "./Auth"
 import { AppEpic, RootState } from "./Store"
-import { ErrorInfo, Thread, threadConverter } from "./Types"
+import {
+  ErrorInfo,
+  Thread,
+  threadConverter,
+  userConverter,
+  User,
+} from "./Types"
 
 type NewThreadParam = {
   title: string
@@ -21,7 +28,10 @@ type NewThreadParam = {
 
 type ThreadFetchResult = {
   list: string[]
-  threads: Record<string, Thread>
+  entities: {
+    threads: Record<string, Thread>
+    users: Record<string, User>
+  }
 }
 
 export type ThreadState = {
@@ -66,8 +76,9 @@ const slice = createSlice({
     postNewThreadClear(state) {
       state.ui.newThread = {}
     },
-    fetchHomeThreadList(state) {
-      // state.ui.home.isFetching = true
+    fetchHomeThreadList(state) {},
+    fetchHomeThreadListStarted(state) {
+      state.ui.home.isFetching = true
     },
     fetchHomeThreadListSuccess(
       state,
@@ -75,7 +86,7 @@ const slice = createSlice({
     ) {
       state.ui.home.isFetching = false
       state.ui.home.list = action.payload.list
-      state.byId = action.payload.threads
+      state.byId = action.payload.entities.threads
     },
     fetchHomeThreadListFailed(state, action: PayloadAction<ErrorInfo>) {},
   },
@@ -95,9 +106,9 @@ const postNewThreadEpic: AppEpic = (action$, state$) =>
         title: action.payload.title,
         body: action.payload.body,
         authorUid: selectCurrentUid(state),
-        createdAt: firebase.firestore.FieldValue.serverTimestamp(),
+        createdAt: firestore.FieldValue.serverTimestamp(),
       }
-      const threadsRef = firebase.firestore().collection("threads")
+      const threadsRef = firestore().collection("threads")
       return from(threadsRef.add(data)).pipe(
         map(() => {
           return actions.postNewThreadSuccess()
@@ -123,17 +134,32 @@ const fetchHomeThreadListEpic: AppEpic = (action$, state$) =>
         return EMPTY
       }
 
-      const threadsRef = firebase
-        .firestore()
+      const threadsRef = firestore()
         .collection("threads")
         .withConverter(threadConverter)
       const query = threadsRef.orderBy("createdAt", "desc").limit(20)
       return from(query.get()).pipe(
-        map((snapshot) => {
+        switchMap((snapshot) => {
           const threads = snapshot.docs.map((doc) => doc.data())
+          const uids = threads.map((th) => th.authorUid)
+          const userQuery = firestore()
+            .collection("users")
+            .where(firestore.FieldPath.documentId(), "in", uids)
+            .withConverter(userConverter)
+          return from(userQuery.get()).pipe(
+            map((snapshot) => {
+              const users = snapshot.docs.map((doc) => doc.data())
+              return { threads, users }
+            })
+          )
+        }),
+        map(({ threads, users }) => {
           return actions.fetchHomeThreadListSuccess({
             list: threads.map((th) => th.key),
-            threads: _.keyBy(threads, (th) => th.key),
+            entities: {
+              threads: _.keyBy(threads, (th) => th.key),
+              users: _.keyBy(users, (u) => u.uid),
+            },
           })
         }),
         catchError((err) => {
@@ -143,7 +169,8 @@ const fetchHomeThreadListEpic: AppEpic = (action$, state$) =>
               detail: err.toString(),
             })
           )
-        })
+        }),
+        startWith(actions.fetchHomeThreadListStarted())
       )
     })
   )
